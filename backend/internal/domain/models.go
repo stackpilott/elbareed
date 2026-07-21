@@ -1,0 +1,25 @@
+package domain
+
+import "time"
+
+type MailBox struct {
+	Name        string
+	UnreadCount int
+	TotalCount  int
+}
+
+type Message struct {
+	ID      string
+	Subject string
+	From    string
+	To      []string
+	Date    time.Time
+	Body    string
+	Flags   []string
+}
+
+type Session struct {
+	Token    string
+	Email    string
+	Password string
+}
