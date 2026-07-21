@@ -2,7 +2,7 @@ package domain
 
 import "time"
 
-type MailBox struct {
+type Mailbox struct {
 	Name        string
 	UnreadCount int
 	TotalCount  int
