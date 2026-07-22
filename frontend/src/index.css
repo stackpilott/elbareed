@@ -1,58 +1,31 @@
-:root {
-  --bg-main: #ffffff;
-  --bg-sidebar: #f4f4f5;
-  --text-main: #18181b;
-  --text-muted: #71717a;
-  --border-light: #e4e4e7;
-  --primary-accent: #2563eb;
-  --danger: #dc2626;
-  --hover-bg: #e4e4e7;
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
-  color: var(--text-main);
-}
-
-/* Accessibility: Universal clear focus outlines for keyboard navigation */
-*:focus-visible {
-  outline: 3px solid var(--primary-accent);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-/* Resizer for the sidebar */
-.sidebar-resizer {
-  width: 5px;
-  cursor: col-resize;
-  background-color: transparent;
+.message-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
   transition: background-color 0.2s;
 }
-.sidebar-resizer:hover, .sidebar-resizer:active {
-  background-color: var(--primary-accent);
+
+.message-row:hover {
+  background-color: var(--hover-bg);
 }
 
-/* Toolbar buttons with clear hover states */
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: transparent;
-  border: 1px solid var(--border-light);
-  border-radius: 6px;
+.message-row.unread {
+  background-color: #f0f9ff;
+  font-weight: 700;
+}
+
+.message-row.read {
+  background-color: var(--bg-main);
   color: var(--text-main);
-  font-weight: 500;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
 }
-.action-btn:hover {
-  background: var(--hover-bg);
-}
-.action-btn.danger:hover {
-  background: #fee2e2;
-  color: var(--danger);
-  border-color: #fca5a5;
+
+.message-snippet {
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-left: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

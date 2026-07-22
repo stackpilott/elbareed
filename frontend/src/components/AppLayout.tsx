@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Sidebar } from './Sidebar';
 import { Toolbar } from './Toolbar';
+import { MessageList } from './MessageList';
 import '../index.css';
 
 export const AppLayout = () => {
@@ -62,10 +63,7 @@ export const AppLayout = () => {
         <Toolbar />
         
         <main style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '40px' }}>
-            <p>The workspace is ready.</p>
-            <p>Next step: Build the high-contrast message list with pinned threads.</p>
-          </div>
+          <MessageList />
         </main>
       </div>
     </div>
