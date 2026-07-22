@@ -3,6 +3,7 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 interface AuthContextType {
   token: string | null;
   login: (email: string, pass: string) => Promise<void>;
+  loginWithGoogle: (accessToken: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -28,13 +29,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('mail_token', data.token);
   };
 
+  const loginWithGoogle = async (accessToken: string) => {
+    const response = await fetch('http://localhost:8080/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ access_token: accessToken }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || 'Google login failed on backend');
+    }
+
+    const data = await response.json();
+    setToken(data.token);
+    localStorage.setItem('mail_token', data.token);
+  };
+
   const logout = () => {
     setToken(null);
     localStorage.removeItem('mail_token');
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ token, login, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
