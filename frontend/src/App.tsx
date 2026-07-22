@@ -1,20 +1,15 @@
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginForm } from './components/LoginForm';
+import { AppLayout } from './components/AppLayout';
 
 const AppContent = () => {
-  const { token, logout } = useAuth();
+  const { token } = useAuth();
 
   if (!token) {
     return <LoginForm />;
   }
 
-  return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1>Successfully Authenticated!</h1>
-      <p>Your secure token: {token}</p>
-      <button onClick={logout} style={{ padding: '10px' }}>Logout</button>
-    </div>
-  );
+  return <AppLayout />;
 };
 
 export const App = () => {
