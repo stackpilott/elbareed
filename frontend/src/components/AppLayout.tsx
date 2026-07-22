@@ -1,27 +1,73 @@
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Sidebar } from './Sidebar';
+import { Toolbar } from './Toolbar';
+import '../index.css';
 
 export const AppLayout = () => {
   const { logout } = useAuth();
+  const [sidebarWidth, setSidebarWidth] = useState(240);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleMouseDown = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging) return;
+    const newWidth = Math.min(Math.max(e.clientX, 150), 500);
+    setSidebarWidth(newWidth);
+  }, [isDragging]);
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: '#f4f4f5', margin: 0, padding: 0 }}>
-      <nav style={{ width: '80px', backgroundColor: '#18181b', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 0' }}>
-        <div style={{ width: '40px', height: '40px', backgroundColor: '#3b82f6', borderRadius: '8px', marginBottom: 'auto' }}></div>
-        <button 
-          onClick={logout}
-          style={{ background: 'transparent', color: '#a1a1aa', border: 'none', cursor: 'pointer', marginBottom: '20px' }}
-        >
-          Exit
-        </button>
-      </nav>
-      <main style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
-        <h1 style={{ color: '#27272a', margin: '0 0 20px 0', fontFamily: 'sans-serif' }}>
-          Your Inbox Reimagined
-        </h1>
-        <div style={{ backgroundColor: 'white', height: '80%', borderRadius: '12px', border: '1px dashed #d4d4d8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={{ color: '#a1a1aa', fontFamily: 'sans-serif' }}>Waiting for UI design selection...</p>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: 'var(--bg-main)', userSelect: isDragging ? 'none' : 'auto' }}>
+      <div style={{ width: `${sidebarWidth}px`, backgroundColor: 'var(--bg-sidebar)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div style={{ padding: '16px', fontWeight: 'bold', fontSize: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Webmail Pro
+          <button onClick={logout} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="Logout">
+            ⏏️
+          </button>
         </div>
-      </main>
+        
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <Sidebar />
+        </div>
+      </div>
+
+      <div 
+        className="sidebar-resizer" 
+        title="Drag to resize"
+        onMouseDown={handleMouseDown}
+      ></div>
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <Toolbar />
+        
+        <main style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '40px' }}>
+            <p>The workspace is ready.</p>
+            <p>Next step: Build the high-contrast message list with pinned threads.</p>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
