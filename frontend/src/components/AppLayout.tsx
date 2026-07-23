@@ -44,7 +44,7 @@ export const AppLayout = () => {
         <div style={{ padding: '16px', fontWeight: 'bold', fontSize: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Webmail Pro
           <button onClick={logout} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }} title="Logout">
-            ⏏️
+            ⏏️logout
           </button>
         </div>
         

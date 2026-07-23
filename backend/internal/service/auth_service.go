@@ -2,50 +2,80 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
+	"time"
+
+	"webmail-backend/internal/adapter"
 	"webmail-backend/internal/domain"
-	"webmail-backend/internal/port"
+
+	"github.com/google/uuid"
 )
 
 type AuthService struct {
-	verifier port.CredentialVerifier
-	store    port.SessionStore
+	verifier *adapter.IMAPAdapter
+	store    *adapter.InMemorySessionStore
 }
 
-// NewAuthService injects our port dependencies into the service.
-func NewAuthService(v port.CredentialVerifier, s port.SessionStore) *AuthService {
-	return &AuthService{
-		verifier: v,
-		store:    s,
-	}
+func NewAuthService(v *adapter.IMAPAdapter, s *adapter.InMemorySessionStore) *AuthService {
+	return &AuthService{verifier: v, store: s}
 }
 
-func (s *AuthService) Login(ctx context.Context, email, password string) (*domain.Session, error) {
-	// 1. Verify credentials with the upstream server
+func (s *AuthService) Login(ctx context.Context, email, password string) (string, error) {
 	if err := s.verifier.Verify(ctx, email, password); err != nil {
-		return nil, errors.New("invalid credentials")
+		return "", err
 	}
 
-	// 2. Generate a secure random session token
-	bytes := make([]byte, 16)
-	if _, err := rand.Read(bytes); err != nil {
-		return nil, errors.New("failed to generate token")
-	}
-	token := hex.EncodeToString(bytes)
-
-	// 3. Create the domain session object
+	token := uuid.New().String()
 	session := &domain.Session{
-		Token:    token,
-		Email:    email,
-		Password: password,
+		Token:     token,
+		Email:     email,
+		Password:  password,
+		CreatedAt: time.Now(),
 	}
 
-	// 4. Save to our session store
 	if err := s.store.Save(ctx, session); err != nil {
-		return nil, errors.New("failed to save session")
+		return "", errors.New("failed to create session")
 	}
 
-	return session, nil
+	fmt.Printf("Got the token %s", token)
+	return token, nil
+}
+
+func (s *AuthService) LoginWithGoogle(ctx context.Context, accessToken string) (string, error) {
+	req, _ := http.NewRequestWithContext(ctx, "GET", "https://www.googleapis.com/oauth2/v2/userinfo", nil)
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil || resp.StatusCode != 200 {
+		return "", errors.New("failed to verify google token")
+	}
+	defer resp.Body.Close()
+
+	var userInfo struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		return "", errors.New("failed to parse google user info")
+	}
+
+	if err := s.verifier.VerifyWithOAuth(ctx, userInfo.Email, accessToken); err != nil {
+		return "", fmt.Errorf("imap oauth failed: %w", err)
+	}
+
+	token := uuid.New().String()
+	session := &domain.Session{
+		Token:       token,
+		Email:       userInfo.Email,
+		AccessToken: accessToken,
+		CreatedAt:   time.Now(),
+	}
+
+	if err := s.store.Save(ctx, session); err != nil {
+		return "", errors.New("failed to create session")
+	}
+
+	return token, nil
 }

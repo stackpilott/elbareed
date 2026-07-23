@@ -19,7 +19,9 @@ type Message struct {
 }
 
 type Session struct {
-	Token    string
-	Email    string
-	Password string
+	Token       string
+	Email       string
+	Password    string
+	AccessToken string
+	CreatedAt   time.Time
 }
