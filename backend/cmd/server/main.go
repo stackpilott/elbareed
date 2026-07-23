@@ -16,27 +16,20 @@ import (
 )
 
 func main() {
-	// 1. Configure IMAP Host (Defaulting to Gmail)
 	imapHost := os.Getenv("IMAP_HOST")
 	if imapHost == "" {
 		imapHost = "imap.gmail.com:993"
 	}
 
-	// 2. Initialize Adapters (The Real Connections)
 	fmt.Printf("Initializing real IMAP connection to %s...\n", imapHost)
 	store := adapter.NewInMemorySessionStore()
-	verifier := adapter.NewIMAPAdapter(imapHost) // Now using the REAL adapter!
+	verifier := adapter.NewIMAPAdapter(imapHost)
 
-	// 3. Initialize Services (The Business Logic)
 	authService := service.NewAuthService(verifier, store)
-
-	// 4. Initialize Handlers (The Web Translators)
 	authHandler := transportHttp.NewAuthHandler(authService)
 
-	// 5. Set up the Router
 	r := chi.NewRouter()
 
-	// 6. Add Middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
@@ -46,10 +39,9 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	// 7. Map URLs to Handlers
 	r.Post("/api/login", authHandler.Login)
+	r.Post("/api/auth/google", authHandler.GoogleLogin)
 
-	// 8. Start the Server
 	port := ":8080"
 	fmt.Printf("Web server is running on http://localhost%s\n", port)
 	if err := http.ListenAndServe(port, r); err != nil {
